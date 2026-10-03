@@ -43,9 +43,9 @@ function PortalApp() {
 
   if (authLoading || (session && dataLoading)) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-3 animate-fade-in">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 animate-scale-in">
-          <FlaskConical size={26} className="text-white" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-3">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md">
+          <FlaskConical size={24} className="text-white" />
         </div>
         <Loader2 size={22} className="animate-spin text-brand-500" />
         <p className="text-sm text-slate-400">Loading Molekul...</p>
@@ -89,32 +89,30 @@ function PortalApp() {
         />
 
         <main className="flex-1 px-4 sm:px-6 py-6 max-w-6xl mx-auto w-full">
-          <div key={activeSection} className="animate-fade-in-up">
-            {activeSection === 'schedule' && (
-              <ScheduleSection
-                slots={schedule}
-                teacherMode={isTeacher}
-                onAdd={() => setShowScheduleModal(true)}
-                onDelete={deleteSchedule}
-              />
-            )}
-            {activeSection === 'notes' && (
-              <NotesSection
-                notes={notes}
-                teacherMode={isTeacher}
-                onAdd={() => setShowNoteModal(true)}
-                onDelete={deleteNote}
-              />
-            )}
-            {activeSection === 'papers' && (
-              <PapersSection
-                papers={papers}
-                teacherMode={isTeacher}
-                onAdd={() => setShowPaperModal(true)}
-                onDelete={deletePaper}
-              />
-            )}
-          </div>
+          {activeSection === 'schedule' && (
+            <ScheduleSection
+              slots={schedule}
+              teacherMode={isTeacher}
+              onAdd={() => setShowScheduleModal(true)}
+              onDelete={deleteSchedule}
+            />
+          )}
+          {activeSection === 'notes' && (
+            <NotesSection
+              notes={notes}
+              teacherMode={isTeacher}
+              onAdd={() => setShowNoteModal(true)}
+              onDelete={deleteNote}
+            />
+          )}
+          {activeSection === 'papers' && (
+            <PapersSection
+              papers={papers}
+              teacherMode={isTeacher}
+              onAdd={() => setShowPaperModal(true)}
+              onDelete={deletePaper}
+            />
+          )}
         </main>
 
         <footer className="px-4 sm:px-6 py-4 border-t border-slate-200 text-center">

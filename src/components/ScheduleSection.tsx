@@ -1,4 +1,4 @@
-import { Video, Clock, Calendar, Trash2, Info } from 'lucide-react';
+import { Video, Clock, Calendar, Trash2, ExternalLink, Info } from 'lucide-react';
 import type { ScheduleSlot } from '../types';
 import { formatDate, formatTime, getDaysUntil } from '../utils';
 import { MediumBadge, EmptyState, SectionHeader, AddButton } from './ui';
@@ -14,7 +14,7 @@ export default function ScheduleSection({ slots, teacherMode, onAdd, onDelete }:
   const sorted = [...slots].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div className="animate-fade-in-up">
+    <div>
       <SectionHeader
         title="Live Schedule & Links"
         subtitle="Join your upcoming live classes on time"
@@ -29,28 +29,28 @@ export default function ScheduleSection({ slots, teacherMode, onAdd, onDelete }:
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {sorted.map((slot, index) => {
+          {sorted.map((slot) => {
             const daysUntil = getDaysUntil(slot.date);
             const isToday = daysUntil === 0;
             const isPast = daysUntil < 0;
             return (
               <div
                 key={slot.id}
-                className={`relative rounded-2xl border p-5 transition-all duration-300 ease-in-out animate-stagger-in ${
+                className={`relative rounded-2xl border p-5 transition-all hover:shadow-lg ${
                   isToday
-                    ? 'border-brand-300 bg-brand-50/50 shadow-md shadow-brand-500/10 hover:shadow-lg hover:shadow-brand-500/20 hover:scale-[1.02]'
+                    ? 'border-brand-300 bg-brand-50/50 shadow-md shadow-brand-500/10'
                     : isPast
-                    ? 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
-                    : 'border-slate-200 bg-white card-shadow hover:card-shadow-hover hover:border-brand-200 hover:scale-[1.02]'
-                } stagger-${Math.min(index + 1, 6)}`}
+                    ? 'border-slate-200 bg-slate-50/50'
+                    : 'border-slate-200 bg-white hover:border-brand-200'
+                }`}
               >
                 {isToday && (
-                  <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full bg-brand-500 text-white text-[10px] font-bold uppercase tracking-wide shadow-md shadow-brand-500/30">
+                  <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full bg-brand-500 text-white text-[10px] font-bold uppercase tracking-wide shadow">
                     Today
                   </span>
                 )}
                 {isPast && !isToday && (
-                  <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full bg-slate-300 text-slate-600 text-[10px] font-bold uppercase tracking-wide shadow-sm">
+                  <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-full bg-slate-300 text-slate-600 text-[10px] font-bold uppercase tracking-wide">
                     Completed
                   </span>
                 )}
@@ -77,7 +77,7 @@ export default function ScheduleSection({ slots, teacherMode, onAdd, onDelete }:
                       href={slot.joinLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all duration-200 ease-in-out shadow-md shadow-brand-500/20 hover:shadow-brand-500/30 hover:scale-[1.03]"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm"
                     >
                       <Video size={16} />
                       Join Class
@@ -91,7 +91,7 @@ export default function ScheduleSection({ slots, teacherMode, onAdd, onDelete }:
                   {teacherMode && (
                     <button
                       onClick={() => onDelete(slot.id)}
-                      className="p-2.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+                      className="p-2.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors"
                       aria-label="Delete slot"
                     >
                       <Trash2 size={16} />

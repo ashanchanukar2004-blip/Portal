@@ -26,18 +26,18 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-md animate-fade-in p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-fade-in p-0 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-lg bg-white/95 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto scrollbar-thin border border-white/40"
+        className="w-full sm:max-w-lg bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto scrollbar-thin"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100/80 sticky top-0 glass z-10 rounded-t-3xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur z-10">
           <h3 className="text-base font-semibold text-slate-900">{title}</h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all duration-200 ease-in-out hover:scale-105 active:scale-95"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
             aria-label="Close"
           >
             <X size={18} />
