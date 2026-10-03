@@ -11,7 +11,7 @@ import AuthScreen from './components/AuthScreen';
 import { AuthProvider, useAuth } from './lib/auth';
 import { usePortalData } from './lib/usePortalData';
 import type { SectionId } from './types';
-import { Loader2, FlaskConical } from 'lucide-react';
+import { Loader as Loader2, FlaskConical } from 'lucide-react';
 
 const sectionTitles: Record<SectionId, string> = {
   schedule: 'Live Schedule & Links',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlaskConical, GraduationCap, ShieldCheck, Mail, Lock, User, Loader2, AlertCircle, LogIn, UserPlus } from 'lucide-react';
+import { FlaskConical, GraduationCap, ShieldCheck, Mail, Lock, User, Loader as Loader2, CircleAlert as AlertCircle, LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import type { UserRole } from '../lib/supabase';
 

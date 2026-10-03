@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { UploadCloud, FileText, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { CloudUpload as UploadCloud, FileText, X, Loader as Loader2, CircleCheck as CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface FileUploadProps {
