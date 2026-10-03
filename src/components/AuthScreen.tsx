@@ -35,7 +35,7 @@ export default function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4 animate-fade-in">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-500/10 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-brand-400/10 blur-3xl" />
@@ -43,19 +43,19 @@ export default function AuthScreen() {
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 items-center justify-center shadow-lg shadow-brand-500/30 mb-3">
+          <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 items-center justify-center shadow-xl shadow-brand-500/30 mb-3 transition-all duration-200 hover:scale-105">
             <FlaskConical size={28} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white">Molekul</h1>
           <p className="text-sm text-slate-400 mt-1">Advanced Level Chemistry Portal</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-7 animate-scale-in">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-7 animate-scale-in border border-white/20">
           <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-5">
             <button
               onClick={() => switchMode('signin')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'signin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ease-in-out ${
+                mode === 'signin' ? 'bg-white text-slate-900 shadow-md scale-[1.02]' : 'text-slate-500 hover:text-slate-700 hover:scale-[1.02]'
               }`}
             >
               <LogIn size={16} />
@@ -63,8 +63,8 @@ export default function AuthScreen() {
             </button>
             <button
               onClick={() => switchMode('signup')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                mode === 'signup' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ease-in-out ${
+                mode === 'signup' ? 'bg-white text-slate-900 shadow-md scale-[1.02]' : 'text-slate-500 hover:text-slate-700 hover:scale-[1.02]'
               }`}
             >
               <UserPlus size={16} />
@@ -79,10 +79,10 @@ export default function AuthScreen() {
                 <button
                   type="button"
                   onClick={() => setRole('student')}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all ${
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border-2 transition-all duration-200 ease-in-out ${
                     role === 'student'
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      ? 'border-brand-500 bg-brand-50 text-brand-700 shadow-md shadow-brand-500/15 scale-[1.02]'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:scale-[1.02]'
                   }`}
                 >
                   <GraduationCap size={20} />
@@ -92,12 +92,12 @@ export default function AuthScreen() {
                   type="button"
                   onClick={() => setRole('teacher')}
                   disabled={teacherExists}
-                  className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all ${
+                  className={`flex flex-col items-center gap-1.5 py-3 rounded-2xl border-2 transition-all duration-200 ease-in-out ${
                     teacherExists
                       ? 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50'
                       : role === 'teacher'
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      ? 'border-brand-500 bg-brand-50 text-brand-700 shadow-md shadow-brand-500/15 scale-[1.02]'
+                      : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:scale-[1.02]'
                   }`}
                 >
                   <ShieldCheck size={20} />
@@ -157,7 +157,7 @@ export default function AuthScreen() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-500 text-white text-sm font-bold hover:bg-brand-600 active:scale-95 transition-all shadow-md shadow-brand-500/25 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-brand-500 text-white text-sm font-bold hover:bg-brand-600 active:scale-95 transition-all duration-200 ease-in-out shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <Loader2 size={18} className="animate-spin" />

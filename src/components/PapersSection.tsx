@@ -40,7 +40,7 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
   }, [filtered, activeType, availableTypes]);
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <SectionHeader
         title="Papers"
         subtitle="Download exam papers and marking schemes by section"
@@ -51,10 +51,10 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
         <div className="flex gap-2 overflow-x-auto scrollbar-thin pb-1">
           <button
             onClick={() => setActiveType('All')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ease-in-out ${
               activeType === 'All'
-                ? 'bg-brand-500 text-white shadow-sm'
-                : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25 scale-[1.03]'
+                : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 hover:scale-[1.03]'
             }`}
           >
             All Papers
@@ -65,10 +65,10 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
               <button
                 key={type}
                 onClick={() => setActiveType(type)}
-                className={`px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 ease-in-out ${
                   activeType === type
-                    ? 'bg-brand-500 text-white shadow-sm'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                    ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25 scale-[1.03]'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600 hover:scale-[1.03]'
                 }`}
               >
                 {type}
@@ -92,23 +92,23 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
       ) : (
         <div className="space-y-6">
           {grouped.map(([type, items]) => (
-            <div key={type}>
+            <div key={type} className="animate-fade-in">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-md shadow-brand-500/20">
                   <FileStack size={16} className="text-white" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800">{type}</h4>
                 <span className="text-xs text-slate-400">({items.length})</span>
               </div>
               <div className="space-y-3">
-                {items.map((paper) => (
+                {items.map((paper, index) => (
                   <div
                     key={paper.id}
-                    className="group rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-lg hover:border-brand-200 transition-all"
+                    className="group rounded-2xl border border-slate-200 bg-white p-5 card-shadow hover:card-shadow-hover hover:border-brand-200 transition-all duration-300 ease-in-out hover:scale-[1.01] animate-stagger-in stagger-${Math.min(index + 1, 6)}"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0 shadow-md shadow-brand-500/20">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-500/25 transition-all duration-200 group-hover:scale-105">
                           <ClipboardList size={22} className="text-white" />
                         </div>
                         <div className="min-w-0">
@@ -129,7 +129,7 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
                           href={paper.paperUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 active:scale-95 transition-all shadow-sm"
+                          className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 active:scale-95 transition-all duration-200 ease-in-out shadow-md shadow-brand-500/20 hover:shadow-brand-500/30 hover:scale-[1.03]"
                         >
                           <Download size={15} />
                           Question Paper
@@ -138,7 +138,7 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
                           href={paper.markingSchemeUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 active:scale-95 transition-all"
+                          className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100 active:scale-95 transition-all duration-200 ease-in-out hover:scale-[1.03]"
                         >
                           <FileCheck size={15} />
                           Marking Scheme
@@ -146,7 +146,7 @@ export default function PapersSection({ papers, teacherMode, onAdd, onDelete }: 
                         {teacherMode && (
                           <button
                             onClick={() => onDelete(paper.id)}
-                            className="p-2.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            className="p-2.5 rounded-xl text-red-400 hover:bg-red-50 hover:text-red-500 transition-all duration-200 ease-in-out hover:scale-110 active:scale-95"
                             aria-label="Delete paper"
                           >
                             <Trash2 size={16} />
