@@ -36,7 +36,7 @@ async function sendEmail(to: string, subject: string, html: string) {
     },
     body: JSON.stringify({
       from: "onboarding@resend.dev",
-      to: "YOUR_REGISTERED_EMAIL@example.com", // IMPORTANT: Replace with the exact email address you used to register your Resend account
+      to: "ashanchanukar2004@gmail.com", // IMPORTANT: Replace with the exact email address you used to register your Resend account
       subject,
       html,
     }),
