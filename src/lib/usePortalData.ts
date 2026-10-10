@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
-import type { ScheduleSlot, NoteItem, ExamPaper } from '../types';
+import type { ScheduleSlot, NoteItem, ExamPaper, Assignment, Submission } from '../types';
 
 interface DbSchedule {
   id: string;
@@ -31,6 +31,25 @@ interface DbPaper {
   marking_scheme_url: string;
   medium: string;
   published_at: string;
+}
+
+interface DbAssignment {
+  id: string;
+  title: string;
+  description: string;
+  deadline: string;
+  medium: string;
+  created_at: string;
+}
+
+interface DbSubmission {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  student_email: string;
+  file_name: string;
+  file_url: string;
+  submitted_at: string;
 }
 
 const toScheduleSlot = (r: DbSchedule): ScheduleSlot => ({
@@ -64,10 +83,31 @@ const toExamPaper = (r: DbPaper): ExamPaper => ({
   publishedAt: r.published_at,
 });
 
+const toAssignment = (r: DbAssignment): Assignment => ({
+  id: r.id,
+  title: r.title,
+  description: r.description,
+  deadline: r.deadline,
+  medium: r.medium as Assignment['medium'],
+  createdAt: r.created_at,
+});
+
+const toSubmission = (r: DbSubmission): Submission => ({
+  id: r.id,
+  assignmentId: r.assignment_id,
+  studentId: r.student_id,
+  studentEmail: r.student_email,
+  fileName: r.file_name,
+  fileUrl: r.file_url,
+  submittedAt: r.submitted_at,
+});
+
 interface PortalData {
   schedule: ScheduleSlot[];
   notes: NoteItem[];
   papers: ExamPaper[];
+  assignments: Assignment[];
+  submissions: Submission[];
   loading: boolean;
   addSchedule: (slot: Omit<ScheduleSlot, 'id'>) => Promise<{ error: string | null }>;
   deleteSchedule: (id: string) => Promise<void>;
@@ -75,22 +115,30 @@ interface PortalData {
   deleteNote: (id: string) => Promise<void>;
   addPaper: (paper: Omit<ExamPaper, 'id'>) => Promise<{ error: string | null }>;
   deletePaper: (id: string) => Promise<void>;
+  addAssignment: (a: Omit<Assignment, 'id' | 'createdAt'>) => Promise<{ error: string | null }>;
+  deleteAssignment: (id: string) => Promise<void>;
+  submitAssignment: (assignmentId: string, studentEmail: string, fileName: string, fileUrl: string) => Promise<{ error: string | null }>;
+  deleteSubmission: (id: string) => Promise<void>;
 }
 
-export function usePortalData(): PortalData {
+export function usePortalData(userId?: string): PortalData {
   const [schedule, setSchedule] = useState<ScheduleSlot[]>([]);
   const [notes, setNotes] = useState<NoteItem[]>([]);
   const [papers, setPapers] = useState<ExamPaper[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     const loadAll = async () => {
-      const [schedRes, notesRes, papersRes] = await Promise.all([
+      const [schedRes, notesRes, papersRes, assignRes, subRes] = await Promise.all([
         supabase.from('schedules').select('*').order('date', { ascending: true }),
         supabase.from('notes').select('*').order('uploaded_at', { ascending: false }),
         supabase.from('papers').select('*').order('published_at', { ascending: false }),
+        supabase.from('assignments').select('*').order('deadline', { ascending: true }),
+        supabase.from('submissions').select('*').order('submitted_at', { ascending: false }),
       ]);
 
       if (!mounted) return;
@@ -98,6 +146,8 @@ export function usePortalData(): PortalData {
       if (schedRes.data) setSchedule(schedRes.data.map(toScheduleSlot));
       if (notesRes.data) setNotes(notesRes.data.map(toNoteItem));
       if (papersRes.data) setPapers(papersRes.data.map(toExamPaper));
+      if (assignRes.data) setAssignments(assignRes.data.map(toAssignment));
+      if (subRes.data) setSubmissions(subRes.data.map(toSubmission));
       setLoading(false);
     };
 
@@ -153,13 +203,45 @@ export function usePortalData(): PortalData {
           }
         }
       )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setAssignments((prev) => {
+              const a = toAssignment(payload.new as DbAssignment);
+              return prev.some((x) => x.id === a.id) ? prev : [...prev, a];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = (payload.old as { id: string }).id;
+            setAssignments((prev) => prev.filter((a) => a.id !== oldId));
+          } else if (payload.eventType === 'UPDATE') {
+            const a = toAssignment(payload.new as DbAssignment);
+            setAssignments((prev) => prev.map((x) => (x.id === a.id ? a : x)));
+          }
+        }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setSubmissions((prev) => {
+              const s = toSubmission(payload.new as DbSubmission);
+              return prev.some((x) => x.id === s.id) ? prev : [...prev, s];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = (payload.old as { id: string }).id;
+            setSubmissions((prev) => prev.filter((s) => s.id !== oldId));
+          } else if (payload.eventType === 'UPDATE') {
+            const s = toSubmission(payload.new as DbSubmission);
+            setSubmissions((prev) => prev.map((x) => (x.id === s.id ? s : x)));
+          }
+        }
+      )
       .subscribe();
 
     return () => {
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId]);
 
   const addSchedule = useCallback(async (slot: Omit<ScheduleSlot, 'id'>) => {
     const { error } = await supabase.from('schedules').insert({
@@ -210,10 +292,56 @@ export function usePortalData(): PortalData {
     await supabase.from('papers').delete().eq('id', id);
   }, []);
 
+  const addAssignment = useCallback(async (a: Omit<Assignment, 'id' | 'createdAt'>) => {
+    const { error } = await supabase.from('assignments').insert({
+      title: a.title,
+      description: a.description,
+      deadline: a.deadline,
+      medium: a.medium,
+    });
+    return { error: error?.message ?? null };
+  }, []);
+
+  const deleteAssignment = useCallback(async (id: string) => {
+    await supabase.from('assignments').delete().eq('id', id);
+  }, []);
+
+  const submitAssignment = useCallback(async (assignmentId: string, studentEmail: string, fileName: string, fileUrl: string) => {
+    const { data: existing } = await supabase
+      .from('submissions')
+      .select('id')
+      .eq('assignment_id', assignmentId)
+      .eq('student_id', userId ?? '')
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase.from('submissions').update({
+        file_name: fileName,
+        file_url: fileUrl,
+        submitted_at: new Date().toISOString(),
+      }).eq('id', existing.id);
+      return { error: error?.message ?? null };
+    }
+
+    const { error } = await supabase.from('submissions').insert({
+      assignment_id: assignmentId,
+      student_email: studentEmail,
+      file_name: fileName,
+      file_url: fileUrl,
+    });
+    return { error: error?.message ?? null };
+  }, [userId]);
+
+  const deleteSubmission = useCallback(async (id: string) => {
+    await supabase.from('submissions').delete().eq('id', id);
+  }, []);
+
   return {
     schedule,
     notes,
     papers,
+    assignments,
+    submissions,
     loading,
     addSchedule,
     deleteSchedule,
@@ -221,5 +349,9 @@ export function usePortalData(): PortalData {
     deleteNote,
     addPaper,
     deletePaper,
+    addAssignment,
+    deleteAssignment,
+    submitAssignment,
+    deleteSubmission,
   };
 }

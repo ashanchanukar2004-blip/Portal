@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 
 interface FileUploadProps {
   label: string;
-  folder: 'notes' | 'papers';
+  folder: 'notes' | 'papers' | 'submissions';
   onUploaded: (url: string, fileName: string) => void;
   onClear: () => void;
   currentUrl?: string;

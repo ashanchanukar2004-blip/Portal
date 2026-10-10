@@ -4,19 +4,23 @@ import TopBar from './components/TopBar';
 import ScheduleSection from './components/ScheduleSection';
 import NotesSection from './components/NotesSection';
 import PapersSection from './components/PapersSection';
+import AssignmentsSection from './components/AssignmentsSection';
 import AddScheduleModal from './components/AddScheduleModal';
 import AddNoteModal from './components/AddNoteModal';
 import AddPaperModal from './components/AddPaperModal';
+import AddAssignmentModal from './components/AddAssignmentModal';
+import SubmitAssignmentModal from './components/SubmitAssignmentModal';
 import AuthScreen from './components/AuthScreen';
 import { AuthProvider, useAuth } from './lib/auth';
 import { usePortalData } from './lib/usePortalData';
-import type { SectionId } from './types';
+import type { SectionId, Assignment } from './types';
 import { Loader as Loader2, FlaskConical } from 'lucide-react';
 
 const sectionTitles: Record<SectionId, string> = {
   schedule: 'Live Schedule & Links',
   notes: 'Lesson Notes',
   papers: 'Papers',
+  assignments: 'Assignments',
 };
 
 function PortalApp() {
@@ -28,6 +32,8 @@ function PortalApp() {
     schedule,
     notes,
     papers,
+    assignments,
+    submissions,
     loading: dataLoading,
     addSchedule,
     deleteSchedule,
@@ -35,11 +41,17 @@ function PortalApp() {
     deleteNote,
     addPaper,
     deletePaper,
-  } = usePortalData();
+    addAssignment,
+    deleteAssignment,
+    submitAssignment,
+    deleteSubmission,
+  } = usePortalData(profile?.id);
 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showPaperModal, setShowPaperModal] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [submitTarget, setSubmitTarget] = useState<Assignment | null>(null);
 
   if (authLoading || (session && dataLoading)) {
     return (
@@ -67,6 +79,10 @@ function PortalApp() {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const mySubmissionForTarget = submitTarget
+    ? submissions.find((s) => s.assignmentId === submitTarget.id && s.studentId === profile.id) ?? null
+    : null;
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -113,6 +129,18 @@ function PortalApp() {
               onDelete={deletePaper}
             />
           )}
+          {activeSection === 'assignments' && (
+            <AssignmentsSection
+              assignments={assignments}
+              submissions={submissions}
+              teacherMode={isTeacher}
+              currentUserId={profile.id}
+              onAdd={() => setShowAssignmentModal(true)}
+              onDelete={deleteAssignment}
+              onSubmit={(a) => setSubmitTarget(a)}
+              onDeleteSubmission={deleteSubmission}
+            />
+          )}
         </main>
 
         <footer className="px-4 sm:px-6 py-4 border-t border-slate-200 text-center">
@@ -136,6 +164,19 @@ function PortalApp() {
         open={showPaperModal}
         onClose={() => setShowPaperModal(false)}
         onAdd={addPaper}
+      />
+      <AddAssignmentModal
+        open={showAssignmentModal}
+        onClose={() => setShowAssignmentModal(false)}
+        onAdd={addAssignment}
+      />
+      <SubmitAssignmentModal
+        open={!!submitTarget}
+        onClose={() => setSubmitTarget(null)}
+        assignment={submitTarget}
+        existingSubmission={mySubmissionForTarget}
+        studentEmail={profile.email}
+        onSubmit={submitAssignment}
       />
     </div>
   );

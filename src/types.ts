@@ -1,4 +1,4 @@
-export type SectionId = 'schedule' | 'notes' | 'papers';
+export type SectionId = 'schedule' | 'notes' | 'papers' | 'assignments';
 
 export interface ScheduleSlot {
   id: string;
@@ -31,4 +31,23 @@ export interface ExamPaper {
   markingSchemeUrl: string;
   medium: 'English' | 'Sinhala' | 'Tamil' | 'Bi-lingual';
   publishedAt: string;
+}
+
+export interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  deadline: string;
+  medium: 'English' | 'Sinhala' | 'Tamil' | 'Bi-lingual';
+  createdAt: string;
+}
+
+export interface Submission {
+  id: string;
+  assignmentId: string;
+  studentId: string;
+  studentEmail: string;
+  fileName: string;
+  fileUrl: string;
+  submittedAt: string;
 }
