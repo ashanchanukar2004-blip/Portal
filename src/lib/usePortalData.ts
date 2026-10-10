@@ -244,23 +244,30 @@ export function usePortalData(userId?: string): PortalData {
   }, [userId]);
 
   const addSchedule = useCallback(async (slot: Omit<ScheduleSlot, 'id'>) => {
-    const { error } = await supabase.from('schedules').insert({
+    const { data, error } = await supabase.from('schedules').insert({
       title: slot.title,
       date: slot.date,
       start_time: slot.startTime,
       end_time: slot.endTime,
       join_link: slot.joinLink,
       medium: slot.medium,
-    });
+    }).select().single();
+    if (!error && data) {
+      setSchedule((prev) => {
+        const s = toScheduleSlot(data as DbSchedule);
+        return prev.some((x) => x.id === s.id) ? prev : [...prev, s];
+      });
+    }
     return { error: error?.message ?? null };
   }, []);
 
   const deleteSchedule = useCallback(async (id: string) => {
-    await supabase.from('schedules').delete().eq('id', id);
+    const { error } = await supabase.from('schedules').delete().eq('id', id);
+    if (!error) setSchedule((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   const addNote = useCallback(async (note: Omit<NoteItem, 'id'>) => {
-    const { error } = await supabase.from('notes').insert({
+    const { data, error } = await supabase.from('notes').insert({
       title: note.title,
       unit_number: note.unitNumber,
       description: note.description,
@@ -268,42 +275,66 @@ export function usePortalData(userId?: string): PortalData {
       file_url: note.fileUrl,
       medium: note.medium,
       uploaded_at: note.uploadedAt,
-    });
+    }).select().single();
+    if (!error && data) {
+      setNotes((prev) => {
+        const n = toNoteItem(data as DbNote);
+        return prev.some((x) => x.id === n.id) ? prev : [n, ...prev];
+      });
+    }
     return { error: error?.message ?? null };
   }, []);
 
   const deleteNote = useCallback(async (id: string) => {
-    await supabase.from('notes').delete().eq('id', id);
+    const { error } = await supabase.from('notes').delete().eq('id', id);
+    if (!error) setNotes((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
   const addPaper = useCallback(async (paper: Omit<ExamPaper, 'id'>) => {
-    const { error } = await supabase.from('papers').insert({
+    const { data, error } = await supabase.from('papers').insert({
       paper_type: paper.paperType,
       title: paper.title,
       paper_url: paper.paperUrl,
       marking_scheme_url: paper.markingSchemeUrl,
       medium: paper.medium,
       published_at: paper.publishedAt,
-    });
+    }).select().single();
+    if (!error && data) {
+      setPapers((prev) => {
+        const p = toExamPaper(data as DbPaper);
+        return prev.some((x) => x.id === p.id) ? prev : [p, ...prev];
+      });
+    }
     return { error: error?.message ?? null };
   }, []);
 
   const deletePaper = useCallback(async (id: string) => {
-    await supabase.from('papers').delete().eq('id', id);
+    const { error } = await supabase.from('papers').delete().eq('id', id);
+    if (!error) setPapers((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
   const addAssignment = useCallback(async (a: Omit<Assignment, 'id' | 'createdAt'>) => {
-    const { error } = await supabase.from('assignments').insert({
+    const { data, error } = await supabase.from('assignments').insert({
       title: a.title,
       description: a.description,
       deadline: a.deadline,
       medium: a.medium,
-    });
+    }).select().single();
+    if (!error && data) {
+      setAssignments((prev) => {
+        const item = toAssignment(data as DbAssignment);
+        return prev.some((x) => x.id === item.id) ? prev : [...prev, item];
+      });
+    }
     return { error: error?.message ?? null };
   }, []);
 
   const deleteAssignment = useCallback(async (id: string) => {
-    await supabase.from('assignments').delete().eq('id', id);
+    const { error } = await supabase.from('assignments').delete().eq('id', id);
+    if (!error) {
+      setAssignments((prev) => prev.filter((a) => a.id !== id));
+      setSubmissions((prev) => prev.filter((s) => s.assignmentId !== id));
+    }
   }, []);
 
   const submitAssignment = useCallback(async (assignmentId: string, studentEmail: string, fileName: string, fileUrl: string) => {
@@ -315,25 +346,35 @@ export function usePortalData(userId?: string): PortalData {
       .maybeSingle();
 
     if (existing) {
-      const { error } = await supabase.from('submissions').update({
+      const { data, error } = await supabase.from('submissions').update({
         file_name: fileName,
         file_url: fileUrl,
         submitted_at: new Date().toISOString(),
-      }).eq('id', existing.id);
+      }).eq('id', existing.id).select().single();
+      if (!error && data) {
+        setSubmissions((prev) => prev.map((s) => s.id === existing.id ? toSubmission(data as DbSubmission) : s));
+      }
       return { error: error?.message ?? null };
     }
 
-    const { error } = await supabase.from('submissions').insert({
+    const { data, error } = await supabase.from('submissions').insert({
       assignment_id: assignmentId,
       student_email: studentEmail,
       file_name: fileName,
       file_url: fileUrl,
-    });
+    }).select().single();
+    if (!error && data) {
+      setSubmissions((prev) => {
+        const s = toSubmission(data as DbSubmission);
+        return prev.some((x) => x.id === s.id) ? prev : [s, ...prev];
+      });
+    }
     return { error: error?.message ?? null };
   }, [userId]);
 
   const deleteSubmission = useCallback(async (id: string) => {
-    await supabase.from('submissions').delete().eq('id', id);
+    const { error } = await supabase.from('submissions').delete().eq('id', id);
+    if (!error) setSubmissions((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   return {
