@@ -2,6 +2,31 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
 import type { ScheduleSlot, NoteItem, ExamPaper, Assignment, Submission } from '../types';
 
+interface NotificationPayload {
+  type: 'assignment' | 'notes' | 'papers' | 'schedule';
+  title: string;
+  details: string;
+  deadline?: string;
+}
+
+async function sendNotification(payload: NotificationPayload) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-notification`;
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    // non-blocking — email failure shouldn't affect the UI
+  }
+}
+
 interface DbSchedule {
   id: string;
   title: string;
@@ -257,6 +282,11 @@ export function usePortalData(userId?: string): PortalData {
         const s = toScheduleSlot(data as DbSchedule);
         return prev.some((x) => x.id === s.id) ? prev : [...prev, s];
       });
+      void sendNotification({
+        type: 'schedule',
+        title: slot.title,
+        details: `Date: ${slot.date} | Time: ${slot.startTime}–${slot.endTime} | Medium: ${slot.medium}`,
+      });
     }
     return { error: error?.message ?? null };
   }, []);
@@ -281,6 +311,11 @@ export function usePortalData(userId?: string): PortalData {
         const n = toNoteItem(data as DbNote);
         return prev.some((x) => x.id === n.id) ? prev : [n, ...prev];
       });
+      void sendNotification({
+        type: 'notes',
+        title: note.title,
+        details: note.description,
+      });
     }
     return { error: error?.message ?? null };
   }, []);
@@ -304,6 +339,11 @@ export function usePortalData(userId?: string): PortalData {
         const p = toExamPaper(data as DbPaper);
         return prev.some((x) => x.id === p.id) ? prev : [p, ...prev];
       });
+      void sendNotification({
+        type: 'papers',
+        title: paper.title,
+        details: `Section: ${paper.paperType} | Medium: ${paper.medium}`,
+      });
     }
     return { error: error?.message ?? null };
   }, []);
@@ -324,6 +364,12 @@ export function usePortalData(userId?: string): PortalData {
       setAssignments((prev) => {
         const item = toAssignment(data as DbAssignment);
         return prev.some((x) => x.id === item.id) ? prev : [...prev, item];
+      });
+      void sendNotification({
+        type: 'assignment',
+        title: a.title,
+        details: a.description,
+        deadline: a.deadline,
       });
     }
     return { error: error?.message ?? null };
