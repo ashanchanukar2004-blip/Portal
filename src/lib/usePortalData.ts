@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './supabase';
-import type { ScheduleSlot, NoteItem, ExamPaper, Assignment, Submission } from '../types';
+import type { ScheduleSlot, NoteItem, ExamPaper, Assignment, Submission, Quiz, QuizAttempt } from '../types';
 
 interface NotificationPayload {
-  type: 'assignment' | 'notes' | 'papers' | 'schedule';
+  type: 'assignment' | 'notes' | 'papers' | 'schedule' | 'quiz';
   title: string;
   details: string;
   deadline?: string;
@@ -77,6 +77,25 @@ interface DbSubmission {
   submitted_at: string;
 }
 
+interface DbQuiz {
+  id: string;
+  title: string;
+  description: string;
+  medium: string;
+  created_at: string;
+}
+
+interface DbQuizAttempt {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  student_email: string;
+  score: number;
+  total: number;
+  answers: number[];
+  submitted_at: string;
+}
+
 const toScheduleSlot = (r: DbSchedule): ScheduleSlot => ({
   id: r.id,
   title: r.title,
@@ -127,12 +146,33 @@ const toSubmission = (r: DbSubmission): Submission => ({
   submittedAt: r.submitted_at,
 });
 
+const toQuiz = (r: DbQuiz): Quiz => ({
+  id: r.id,
+  title: r.title,
+  description: r.description,
+  medium: r.medium as Quiz['medium'],
+  createdAt: r.created_at,
+});
+
+const toQuizAttempt = (r: DbQuizAttempt): QuizAttempt => ({
+  id: r.id,
+  quizId: r.quiz_id,
+  studentId: r.student_id,
+  studentEmail: r.student_email,
+  score: r.score,
+  total: r.total,
+  answers: r.answers,
+  submittedAt: r.submitted_at,
+});
+
 interface PortalData {
   schedule: ScheduleSlot[];
   notes: NoteItem[];
   papers: ExamPaper[];
   assignments: Assignment[];
   submissions: Submission[];
+  quizzes: Quiz[];
+  quizAttempts: QuizAttempt[];
   loading: boolean;
   addSchedule: (slot: Omit<ScheduleSlot, 'id'>) => Promise<{ error: string | null }>;
   deleteSchedule: (id: string) => Promise<void>;
@@ -144,6 +184,10 @@ interface PortalData {
   deleteAssignment: (id: string) => Promise<void>;
   submitAssignment: (assignmentId: string, studentEmail: string, fileName: string, fileUrl: string) => Promise<{ error: string | null }>;
   deleteSubmission: (id: string) => Promise<void>;
+  addQuiz: (q: Omit<Quiz, 'id' | 'createdAt'>) => Promise<{ error: string | null }>;
+  deleteQuiz: (id: string) => Promise<void>;
+  quizQuestionCounts: Record<string, number>;
+  refreshQuizQuestionCounts: () => Promise<void>;
 }
 
 export function usePortalData(userId?: string): PortalData {
@@ -152,18 +196,23 @@ export function usePortalData(userId?: string): PortalData {
   const [papers, setPapers] = useState<ExamPaper[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+  const [quizQuestionCounts, setQuizQuestionCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     const loadAll = async () => {
-      const [schedRes, notesRes, papersRes, assignRes, subRes] = await Promise.all([
+      const [schedRes, notesRes, papersRes, assignRes, subRes, quizRes, attemptRes] = await Promise.all([
         supabase.from('schedules').select('*').order('date', { ascending: true }),
         supabase.from('notes').select('*').order('uploaded_at', { ascending: false }),
         supabase.from('papers').select('*').order('published_at', { ascending: false }),
         supabase.from('assignments').select('*').order('deadline', { ascending: true }),
         supabase.from('submissions').select('*').order('submitted_at', { ascending: false }),
+        supabase.from('quizzes').select('*').order('created_at', { ascending: false }),
+        supabase.from('quiz_attempts').select('*').order('submitted_at', { ascending: false }),
       ]);
 
       if (!mounted) return;
@@ -173,6 +222,15 @@ export function usePortalData(userId?: string): PortalData {
       if (papersRes.data) setPapers(papersRes.data.map(toExamPaper));
       if (assignRes.data) setAssignments(assignRes.data.map(toAssignment));
       if (subRes.data) setSubmissions(subRes.data.map(toSubmission));
+      if (quizRes.data) setQuizzes(quizRes.data.map(toQuiz));
+      if (attemptRes.data) setQuizAttempts(attemptRes.data.map(toQuizAttempt));
+
+      const quizIds = (quizRes.data ?? []).map((q) => q.id);
+      if (quizIds.length > 0) {
+        const { count } = await supabase.from('quiz_questions').select('id', { count: 'exact', head: true }).in('quiz_id', quizIds);
+        void count;
+      }
+      await refreshQuizCounts(quizIds);
       setLoading(false);
     };
 
@@ -257,6 +315,38 @@ export function usePortalData(userId?: string): PortalData {
           } else if (payload.eventType === 'UPDATE') {
             const s = toSubmission(payload.new as DbSubmission);
             setSubmissions((prev) => prev.map((x) => (x.id === s.id ? s : x)));
+          }
+        }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setQuizzes((prev) => {
+              const q = toQuiz(payload.new as DbQuiz);
+              return prev.some((x) => x.id === q.id) ? prev : [q, ...prev];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = (payload.old as { id: string }).id;
+            setQuizzes((prev) => prev.filter((q) => q.id !== oldId));
+          } else if (payload.eventType === 'UPDATE') {
+            const q = toQuiz(payload.new as DbQuiz);
+            setQuizzes((prev) => prev.map((x) => (x.id === q.id ? q : x)));
+          }
+        }
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quiz_attempts' },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setQuizAttempts((prev) => {
+              const a = toQuizAttempt(payload.new as DbQuizAttempt);
+              return prev.some((x) => x.id === a.id) ? prev : [a, ...prev];
+            });
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = (payload.old as { id: string }).id;
+            setQuizAttempts((prev) => prev.filter((a) => a.id !== oldId));
+          } else if (payload.eventType === 'UPDATE') {
+            const a = toQuizAttempt(payload.new as DbQuizAttempt);
+            setQuizAttempts((prev) => prev.map((x) => (x.id === a.id ? a : x)));
           }
         }
       )
@@ -423,12 +513,54 @@ export function usePortalData(userId?: string): PortalData {
     if (!error) setSubmissions((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  const refreshQuizCounts = useCallback(async (quizIds?: string[]) => {
+    const ids = quizIds ?? quizzes.map((q) => q.id);
+    if (ids.length === 0) { setQuizQuestionCounts({}); return; }
+    const { data } = await supabase.from('quiz_questions').select('quiz_id').in('quiz_id', ids);
+    const counts: Record<string, number> = {};
+    (data ?? []).forEach((row: { quiz_id: string }) => {
+      counts[row.quiz_id] = (counts[row.quiz_id] ?? 0) + 1;
+    });
+    setQuizQuestionCounts(counts);
+  }, [quizzes]);
+
+  const addQuiz = useCallback(async (q: Omit<Quiz, 'id' | 'createdAt'>) => {
+    const { data, error } = await supabase.from('quizzes').insert({
+      title: q.title,
+      description: q.description,
+      medium: q.medium,
+    }).select().single();
+    if (!error && data) {
+      setQuizzes((prev) => {
+        const item = toQuiz(data as DbQuiz);
+        return prev.some((x) => x.id === item.id) ? prev : [item, ...prev];
+      });
+      void sendNotification({
+        type: 'quiz',
+        title: q.title,
+        details: q.description || 'A new quiz is available on Molekul.',
+      });
+    }
+    return { error: error?.message ?? null };
+  }, []);
+
+  const deleteQuiz = useCallback(async (id: string) => {
+    const { error } = await supabase.from('quizzes').delete().eq('id', id);
+    if (!error) {
+      setQuizzes((prev) => prev.filter((q) => q.id !== id));
+      setQuizAttempts((prev) => prev.filter((a) => a.quizId !== id));
+    }
+  }, []);
+
   return {
     schedule,
     notes,
     papers,
     assignments,
     submissions,
+    quizzes,
+    quizAttempts,
+    quizQuestionCounts,
     loading,
     addSchedule,
     deleteSchedule,
@@ -440,5 +572,8 @@ export function usePortalData(userId?: string): PortalData {
     deleteAssignment,
     submitAssignment,
     deleteSubmission,
+    addQuiz,
+    deleteQuiz,
+    refreshQuizQuestionCounts: () => refreshQuizCounts(),
   };
 }

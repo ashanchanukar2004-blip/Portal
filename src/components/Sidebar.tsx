@@ -1,4 +1,4 @@
-import { Calendar, FileText, ClipboardList, FlaskConical, X, LogOut, GraduationCap, ShieldCheck, CalendarClock } from 'lucide-react';
+import { Calendar, FileText, ClipboardList, FlaskConical, X, LogOut, GraduationCap, ShieldCheck, CalendarClock, ListChecks } from 'lucide-react';
 import type { SectionId } from '../types';
 import type { UserRole } from '../lib/supabase';
 
@@ -17,6 +17,7 @@ const items: { id: SectionId; label: string; icon: typeof Calendar; desc: string
   { id: 'notes', label: 'Lesson Notes', icon: FileText, desc: 'Study resources' },
   { id: 'papers', label: 'Papers', icon: ClipboardList, desc: 'Exam practice' },
   { id: 'assignments', label: 'Assignments', icon: CalendarClock, desc: 'Submit & track' },
+  { id: 'quizzes', label: 'Quizzes', icon: ListChecks, desc: 'Online MCQ tests' },
 ];
 
 export default function Sidebar({ active, onNavigate, open, onClose, userEmail, userRole, onSignOut }: SidebarProps) {

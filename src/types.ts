@@ -1,4 +1,4 @@
-export type SectionId = 'schedule' | 'notes' | 'papers' | 'assignments';
+export type SectionId = 'schedule' | 'notes' | 'papers' | 'assignments' | 'quizzes';
 
 export interface ScheduleSlot {
   id: string;
@@ -49,5 +49,34 @@ export interface Submission {
   studentEmail: string;
   fileName: string;
   fileUrl: string;
+  submittedAt: string;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  medium: 'English' | 'Sinhala' | 'Tamil' | 'Bi-lingual';
+  createdAt: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quizId: string;
+  questionText: string;
+  imageUrl: string | null;
+  options: string[];
+  correctIndex: number;
+  sortOrder: number;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quizId: string;
+  studentId: string;
+  studentEmail: string;
+  score: number;
+  total: number;
+  answers: number[];
   submittedAt: string;
 }

@@ -9,7 +9,9 @@ import AddScheduleModal from './components/AddScheduleModal';
 import AddNoteModal from './components/AddNoteModal';
 import AddPaperModal from './components/AddPaperModal';
 import AddAssignmentModal from './components/AddAssignmentModal';
+import AddQuizModal from './components/AddQuizModal';
 import SubmitAssignmentModal from './components/SubmitAssignmentModal';
+import QuizSection from './components/QuizSection';
 import AuthScreen from './components/AuthScreen';
 import { AuthProvider, useAuth } from './lib/auth';
 import { usePortalData } from './lib/usePortalData';
@@ -21,6 +23,7 @@ const sectionTitles: Record<SectionId, string> = {
   notes: 'Lesson Notes',
   papers: 'Papers',
   assignments: 'Assignments',
+  quizzes: 'Online Quizzes',
 };
 
 function PortalApp() {
@@ -45,12 +48,19 @@ function PortalApp() {
     deleteAssignment,
     submitAssignment,
     deleteSubmission,
+    quizzes,
+    quizAttempts,
+    quizQuestionCounts,
+    addQuiz,
+    deleteQuiz,
+    refreshQuizQuestionCounts,
   } = usePortalData(profile?.id);
 
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showPaperModal, setShowPaperModal] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
   const [submitTarget, setSubmitTarget] = useState<Assignment | null>(null);
 
   if (authLoading || (session && dataLoading)) {
@@ -141,6 +151,19 @@ function PortalApp() {
               onDeleteSubmission={deleteSubmission}
             />
           )}
+          {activeSection === 'quizzes' && (
+            <QuizSection
+              quizzes={quizzes}
+              quizAttempts={quizAttempts}
+              quizQuestionCounts={quizQuestionCounts}
+              teacherMode={isTeacher}
+              currentUserId={profile.id}
+              currentEmail={profile.email}
+              onAdd={() => setShowQuizModal(true)}
+              onDelete={deleteQuiz}
+              refreshQuestionCounts={refreshQuizQuestionCounts}
+            />
+          )}
         </main>
 
         <footer className="px-4 sm:px-6 py-4 border-t border-slate-200 text-center">
@@ -169,6 +192,11 @@ function PortalApp() {
         open={showAssignmentModal}
         onClose={() => setShowAssignmentModal(false)}
         onAdd={addAssignment}
+      />
+      <AddQuizModal
+        open={showQuizModal}
+        onClose={() => setShowQuizModal(false)}
+        onAdd={addQuiz}
       />
       <SubmitAssignmentModal
         open={!!submitTarget}

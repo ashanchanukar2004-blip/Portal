@@ -9,7 +9,7 @@ const corsHeaders = {
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 interface NotificationRequest {
-  type: "assignment" | "notes" | "papers" | "schedule";
+  type: "assignment" | "notes" | "papers" | "schedule" | "quiz";
   title: string;
   details: string;
   deadline?: string;
@@ -20,6 +20,7 @@ const TYPE_LABELS: Record<NotificationRequest["type"], { subject: string; intro:
   notes: { subject: "New Lesson Notes", intro: "New lesson notes have been uploaded on Molekul." },
   papers: { subject: "New Exam Paper", intro: "A new exam paper has been published on Molekul." },
   schedule: { subject: "New Live Class Scheduled", intro: "A new live class has been scheduled on Molekul." },
+  quiz: { subject: "New Online Quiz", intro: "A new online quiz is available on Molekul. Log in to take it and see your results instantly!" },
 };
 
 async function sendEmail(to: string, subject: string, html: string) {
