@@ -42,9 +42,7 @@ export default function QuizSection({
         studentEmail={currentEmail}
         existingAttempt={existing}
         onBack={() => setTakingQuiz(null)}
-        onSubmitted={() => {
-          setTakingQuiz(null);
-        }}
+        onSubmitted={() => {}}
       />
     );
   }
