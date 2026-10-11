@@ -22,7 +22,7 @@ const sectionTitles: Record<SectionId, string> = {
   schedule: 'Live Schedule & Links',
   notes: 'Lesson Notes',
   papers: 'Papers',
-  assignments: 'Assignments',
+  assignments: 'Submissions',
   quizzes: 'Online Quizzes',
 };
 

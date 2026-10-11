@@ -16,7 +16,7 @@ const items: { id: SectionId; label: string; icon: typeof Calendar; desc: string
   { id: 'schedule', label: 'Live Schedule', icon: Calendar, desc: 'Upcoming classes' },
   { id: 'notes', label: 'Lesson Notes', icon: FileText, desc: 'Study resources' },
   { id: 'papers', label: 'Papers', icon: ClipboardList, desc: 'Exam practice' },
-  { id: 'assignments', label: 'Assignments', icon: CalendarClock, desc: 'Submit & track' },
+  { id: 'assignments', label: 'Submissions', icon: CalendarClock, desc: 'Submit & track' },
   { id: 'quizzes', label: 'Quizzes', icon: ListChecks, desc: 'Online MCQ tests' },
 ];
 

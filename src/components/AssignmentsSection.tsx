@@ -61,7 +61,7 @@ export default function AssignmentsSection({
   return (
     <div>
       <SectionHeader
-        title="Assignments"
+        title="Submissions"
         subtitle={teacherMode ? 'Create assignments with deadlines and review submissions' : 'View assignments and submit your work'}
         action={teacherMode && <AddButton onClick={onAdd} label="Add Assignment" />}
       />
